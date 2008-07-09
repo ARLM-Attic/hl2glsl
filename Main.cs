@@ -16,8 +16,7 @@ namespace hl2glsl
 		
 		void PrintGLSLFile(Node rootNode, GLSLGenerator gen, string nameToExport) {
 			ArrayList dependenciesToExport = gen.GetWhoThisFunctionCalls(nameToExport);
-			Console.WriteLine(dependenciesToExport.Count);
-			
+						
 			TokenTreeToText glslWriter = new TokenTreeToText(nameToExport, dependenciesToExport);
 			glslWriter.WriteValues(rootNode);
 		}
