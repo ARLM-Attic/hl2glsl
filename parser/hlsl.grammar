@@ -23,7 +23,7 @@ COPYRIGHT   = "Copyright (c) 2007 Vitor F. Pamplona. All rights reserved."
 
 ADD                          = "+"
 SUB                          = "-"
-MUL                          = "*"
+MULT                         = "*"
 DIV                          = "/"
 MOD                          = "%"
 
@@ -33,7 +33,7 @@ SUB_SUB                      = "--"
 EQUAL						 = "="
 ADD_EQUAL 					 = "+="
 SUB_EQUAL 					 = "-="
-MUL_EQUAL 					 = "*="
+MULT_EQUAL 					 = "*="
 DIV_EQUAL 					 = "/="
 MOD_EQUAL 					 = "%="
 MINOR_MINOR_EQUAL			 = "<<="
@@ -56,6 +56,7 @@ OR							 = "|"
 POT							 = "^"
 AND_AND						 = "&&"
 OR_OR						 = "||"
+NOT							 = "!"
 
 MAJOR        	             = ">"
 MINOR		                 = "<"
@@ -104,8 +105,10 @@ INLINE 				= "inline"
 INOUT 				= "inout"
 MATRIX 				= "matrix"
 OUT 				= "out"
+PACKOFFSET			= "packoffset"
 PASS 				= "pass"
 PIXELFRAGMENT 		= "pixelfragment"
+REGISTER 			= "register"
 RETURN 				= "return"
 ROW_MAJOR  			= "row_major" // row in a single register
 SAMPLER 			= "sampler"
@@ -178,7 +181,6 @@ OPERATOR 			= "operator"
 PUBLIC 				= "public"       
 REINTERPRET_CAST 	= "reinterpret_cast"
 SHORT 				= "short"    
-REGISTER 			= "register"
 STATIC_CAST 		= "static_cast"
 SIGNED 				= "signed"              
 SIZEOF 				= "sizeof"       
@@ -220,18 +222,18 @@ TANGENT				= <<TANGENT([0-9])?>>		 // Tangent 	float4
 PSIZE 				= "PSIZE"		 // Point size 	float
 
 // System-Value Semantics - they are new to Direct3D 10
-//!!!!!!!!!!!!!!!!!!!!!(acho q coloquei invertido hehehe)//!!!!!!!!!!!!!!!!!!!!!
-//SV_ClipDistance			= <<SV_ClipDistance([0-9])?>>	//Clip distance data					float
-//SV_CullDistance			= <<SV_CullDistance([0-9])?>>	//Cull distance data					float
-//SV_Depth					= "DEPTH"						//Depth buffer data						float
-//SV_IsFrontFace			= "IsFrontFace"					//A visible primitive					bool
-//SV_Position				= "POSITION"					//Vertex position in homogeneous space	float4
-//SV_RenderTargetArrayIndex = "RenderTargetArrayIndex"		//Render-target array index				uint
-//SV_Target					= <<SV_Target([0-7])>>			//A render-target array					float
-//SV_ViewportArrayIndex		= "ViewportArrayIndex"			//Viewport array index					uint
-//SV_InstanceID				= "InstanceID"					//Per-instance identifier				uint
-//SV_PrimitiveID			= "PrimitiveID"					//Per-primitive identifier				uint
-//SV_VertexID				= "VertexID"					//Per-vertex identifier					uint
+
+//SV_ClipDistance			  = <<SV_ClipDistance([0-9])?>>	//Clip distance data					float
+//SV_CullDistance			  = <<SV_CullDistance([0-9])?>>	//Cull distance data					float
+//SV_Depth				  = "DEPTH"						//Depth buffer data						float
+//SV_IsFrontFace			  = "IsFrontFace"				//A visible primitive					bool
+//SV_Position				  = "POSITION"					//Vertex position in homogeneous space	float4
+//SV_RenderTargetArrayIndex = "RenderTargetArrayIndex"	//Render-target array index				uint
+//SV_Target				  = <<SV_Target([0-7])>>		//A render-target array					float
+//SV_ViewportArrayIndex	  = "ViewportArrayIndex"		//Viewport array index					uint
+//SV_InstanceID			  = "InstanceID"				//Per-instance identifier				uint
+//SV_PrimitiveID			  = "PrimitiveID"				//Per-primitive identifier				uint
+//SV_VertexID				  = "VertexID"					//Per-vertex identifier					uint
 
 // Matrixes	
 WORLD			    = <<WORLD(I)?(T)?>>
@@ -259,11 +261,13 @@ HALF				= <<half([2-4](x[2-4])?)?>>
 DOUBLE				= <<double([2-4](x[2-4])?)?>>
 BOOL				= <<bool([2-4](x[2-4])?)?>>
 
+
 BASIC_FLOAT			= "float" 
 BASIC_INT			= "int" 
 BASIC_HALF			= "half" 
 BASIC_BOOL			= "bool" 
 BASIC_DOUBLE		= "double"
+BASIC_UINT			= "uint"
 
 // Pre-Processor Directives
 
@@ -297,15 +301,6 @@ COMMENTCPP                   = <<//[^\n\r]*>>
 // 2 - Structs
 // 3 - Techniques 
 
-/*File = WS File_Part | File_Part;	//Para aceitar arquivos que já iniciam com a declaração do shader
-//só q pra colocar isto e funcionar, tem q modificar uma série de funções, então por enqt deixa assim
-File_Part = (
-	     Function_OR_Variable_Declaration [WS]
-       | Struct_Declaration [WS]
-       | Technique_Declaration [WS]
-       | Pre_Processor_Directives [WS]
-       )+; */
-
 File = WS (
 		 Function_OR_Variable_Declaration [WS]
 	   | Struct_Declaration [WS]
@@ -326,11 +321,12 @@ Function_OR_Variable_Declaration = [Storage_Class WS] [Type_Modifier WS] Type WS
 
 Variable_Declaration_PART = [OPEN_COLCHETES [WS] NUMBER [WS] CLOSE_COLCHETES [WS]] 
 					   [ COMMA [WS] IDENTIFIER [WS] [OPEN_COLCHETES [WS] NUMBER [WS] CLOSE_COLCHETES [WS]]]
-					   [DOUBLE_DOT [WS] (SemanticalParameters | Register_Func) [WS]]
-					   [Assignment_Operator [WS] Initializers [WS]]
-					   /*[DOUBLE_DOT [WS] Packoffset [WS]]*/
+					   
+					   (DOUBLE_DOT [WS] (SemanticalParameters|Register_Func|Packoffset_Func) [WS])* 
+					   [Assignment_Operator [WS] Initializers [WS]] 
+					       
 					   DOT_COMMA;
-
+  
 Function_PART = Parameters [WS] [DOUBLE_DOT [WS] SemanticalParameters [WS]] OPEN_BREACKET [WS] Function_Body [WS] CLOSE_BREACKET; 
 
 Parameters = OPEN_PAREN [WS] [List_Of_Params [WS]] CLOSE_PAREN;
@@ -374,10 +370,9 @@ Pre_Processor_Directives = (PRE_DEFINE | PRE_IF | PRE_ELSEIF | PRE_ENDIF | PRE_I
 Statement_Scope = OPEN_BREACKET [WS] Function_Body [WS] CLOSE_BREACKET | Function_Body; 
 
 Variable_Declaration = [Storage_Class WS] [Type_Modifier WS] Type WS
-					    IDENTIFIER [WS] [OPEN_COLCHETES [WS] NUMBER [WS] CLOSE_COLCHETES [WS]]
-					   [DOUBLE_DOT [WS] (SemanticalParameters | Register_Func) [WS]]
+					   IDENTIFIER [WS] [OPEN_COLCHETES [WS] NUMBER [WS] CLOSE_COLCHETES [WS]]
+					   (DOUBLE_DOT [WS] (SemanticalParameters|Register_Func|Packoffset_Func) [WS])* 
 					   [ Assignment_Operator [WS] Initializers [WS]]
-					   /*[DOUBLE_DOT [WS] Packoffset [WS]]*/
 					   ;
 
 Return_Statement = [RETURN WS] Expression [WS] DOT_COMMA;
@@ -388,7 +383,8 @@ Variable_Assignment_WithoutDotComma = Identifier_Composed [WS] [OPEN_COLCHETES [
 
 Condition = Expression [WS] Comparison_Operators [WS] Expression;
 
-Initializers = Expression; 
+Initializers = [NOT] Expression; 
+
 
 Expression = [SUB] Term [[WS] ExpressionTail];
 
@@ -396,7 +392,7 @@ ExpressionTail = (ADD | SUB) [WS] Expression;
 
 Term = Factor [WS] [TermTail];
      
-TermTail = (MUL | DIV | MOD) [WS] Term;
+TermTail = (MULT | DIV | MOD) [WS] Term;
 
 Factor = Atom
        | OPEN_PAREN [WS] Expression [WS] CLOSE_PAREN [Compose_Identifier];     
@@ -421,13 +417,11 @@ PartOf_Property_Specification = OPEN_BREACKET [WS] (Variable_Assignment [WS])+ C
 
 PartOf_Constructor_Call = OPEN_PAREN [WS] [Expression [WS] (COMMA [WS] Expression [WS])*] CLOSE_PAREN [Compose_Identifier];        
 
-// TODO: Register and Pack implementation.
 PartOf_Variable_Declaration = IDENTIFIER [WS] [OPEN_COLCHETES [WS] NUMBER [WS] CLOSE_COLCHETES [WS]] 
 					   [ COMMA [WS] IDENTIFIER [WS] [OPEN_COLCHETES [WS] NUMBER [WS] CLOSE_COLCHETES [WS]]]
-					   [DOUBLE_DOT [WS] (SemanticalParameters | Register_Func) [WS]]
+					   (DOUBLE_DOT [WS] (SemanticalParameters|Register_Func|Packoffset_Func) [WS])* 
 					   [ Assignment_Operator [WS] Initializers [WS] ]
-					   /*[DOUBLE_DOT [WS] Packoffset [WS]]*/
-					   ;
+					    ;
 					   
 PartOf_Variable_Assignment = [OPEN_COLCHETES [WS] NUMBER [WS] CLOSE_COLCHETES] Assignment_Operator [WS] Initializers;
 
@@ -435,7 +429,7 @@ Storage_Class = EXTERN | STATIC | NOINTERPOLATION | SHARED | UNIFORM | VOLATILE;
 
 Type_Modifier = CONST | ROW_MAJOR | COLUMN_MAJOR;
 
-Type = BASIC_FLOAT | FLOAT | BASIC_INT | INT | BASIC_HALF | HALF 
+Type = BASIC_FLOAT | FLOAT | BASIC_INT | INT | BASIC_UINT | BASIC_HALF | HALF 
      | BASIC_DOUBLE | DOUBLE | BASIC_BOOL | BOOL | VectorExp | MatrixExp 
      | SAMPLER | SAMPLER1D | SAMPLER2D | SAMPLER3D | SAMPLERCUBE | SAMPLER_STATE
      | TEXTURE | TEXTURE1D | TEXTURE2D | TEXTURE3D | TEXTURECUBE 
@@ -462,18 +456,21 @@ OutputSemanticalParameters = FOG | TESSFACTOR | DEPTH;
 
 InOutSemanticalParameters = POSITION | TEXCOORD | TEXUNIT | COLOR | PSIZE	;
 
-Assignment_Operator = EQUAL | ADD_EQUAL | SUB_EQUAL | MUL_EQUAL | DIV_EQUAL | MOD_EQUAL 
+Assignment_Operator = EQUAL | ADD_EQUAL | SUB_EQUAL | MULT_EQUAL | DIV_EQUAL | MOD_EQUAL 
 					| MINOR_MINOR_EQUAL | MAJOR_MAJOR_EQUAL | AND_EQUAL | OR_EQUAL | POT_EQUAL; 
 
 Prefix_Postfix_Operators = ADD_ADD | SUB_SUB;
 
 Comparison_Operators = MINOR | MAJOR | EQUAL_EQUAL | DIFF | LESS_EQUAL | MORE_EQUAL;
 
-Boolean_Operators = AND_AND | OR_OR;
+Boolean_Operators = AND_AND | OR_OR | NOT;
+
 
 In_out_inout = IN | OUT | INOUT;
 
 Register_Func = REGISTER [WS] OPEN_PAREN [WS] IDENTIFIER [WS] CLOSE_PAREN;
+
+Packoffset_Func = PACKOFFSET [WS] OPEN_PAREN [WS] Identifier_Composed [WS] CLOSE_PAREN;
 
 Identifier_Composed = IDENTIFIER [Compose_Identifier]; 
 Compose_Identifier = (DOT XYZW | DOT RGBA | DOT IDENTIFIER)+;

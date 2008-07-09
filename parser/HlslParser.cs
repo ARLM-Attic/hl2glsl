@@ -210,7 +210,7 @@ internal class HlslParser : RecursiveDescentParser {
         alt = new ProductionPatternAlternative();
         alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_10, 0, 1);
         alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_12, 0, 1);
-        alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_14, 0, 1);
+        alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_14, 0, -1);
         alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_15, 0, 1);
         alt.AddToken((int) HlslConstants.DOT_COMMA, 1, 1);
         pattern.AddAlternative(alt);
@@ -414,7 +414,7 @@ internal class HlslParser : RecursiveDescentParser {
         alt.AddToken((int) HlslConstants.IDENTIFIER, 1, 1);
         alt.AddProduction((int) HlslConstants.WS, 0, 1);
         alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_34, 0, 1);
-        alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_36, 0, 1);
+        alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_36, 0, -1);
         alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_37, 0, 1);
         pattern.AddAlternative(alt);
         AddPattern(pattern);
@@ -469,6 +469,7 @@ internal class HlslParser : RecursiveDescentParser {
         pattern = new ProductionPattern((int) HlslConstants.INITIALIZERS,
                                         "Initializers");
         alt = new ProductionPatternAlternative();
+        alt.AddToken((int) HlslConstants.NOT, 0, 1);
         alt.AddProduction((int) HlslConstants.EXPRESSION, 1, 1);
         pattern.AddAlternative(alt);
         AddPattern(pattern);
@@ -588,7 +589,7 @@ internal class HlslParser : RecursiveDescentParser {
         alt.AddProduction((int) HlslConstants.WS, 0, 1);
         alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_52, 0, 1);
         alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_54, 0, 1);
-        alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_56, 0, 1);
+        alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_56, 0, -1);
         alt.AddProduction((int) SynteticPatterns.SUBPRODUCTION_57, 0, 1);
         pattern.AddAlternative(alt);
         AddPattern(pattern);
@@ -651,6 +652,9 @@ internal class HlslParser : RecursiveDescentParser {
         pattern.AddAlternative(alt);
         alt = new ProductionPatternAlternative();
         alt.AddToken((int) HlslConstants.INT, 1, 1);
+        pattern.AddAlternative(alt);
+        alt = new ProductionPatternAlternative();
+        alt.AddToken((int) HlslConstants.BASIC_UINT, 1, 1);
         pattern.AddAlternative(alt);
         alt = new ProductionPatternAlternative();
         alt.AddToken((int) HlslConstants.BASIC_HALF, 1, 1);
@@ -883,7 +887,7 @@ internal class HlslParser : RecursiveDescentParser {
         alt.AddToken((int) HlslConstants.SUB_EQUAL, 1, 1);
         pattern.AddAlternative(alt);
         alt = new ProductionPatternAlternative();
-        alt.AddToken((int) HlslConstants.MUL_EQUAL, 1, 1);
+        alt.AddToken((int) HlslConstants.MULT_EQUAL, 1, 1);
         pattern.AddAlternative(alt);
         alt = new ProductionPatternAlternative();
         alt.AddToken((int) HlslConstants.DIV_EQUAL, 1, 1);
@@ -948,6 +952,9 @@ internal class HlslParser : RecursiveDescentParser {
         alt = new ProductionPatternAlternative();
         alt.AddToken((int) HlslConstants.OR_OR, 1, 1);
         pattern.AddAlternative(alt);
+        alt = new ProductionPatternAlternative();
+        alt.AddToken((int) HlslConstants.NOT, 1, 1);
+        pattern.AddAlternative(alt);
         AddPattern(pattern);
 
         pattern = new ProductionPattern((int) HlslConstants.IN_OUT_INOUT,
@@ -971,6 +978,19 @@ internal class HlslParser : RecursiveDescentParser {
         alt.AddToken((int) HlslConstants.OPEN_PAREN, 1, 1);
         alt.AddProduction((int) HlslConstants.WS, 0, 1);
         alt.AddToken((int) HlslConstants.IDENTIFIER, 1, 1);
+        alt.AddProduction((int) HlslConstants.WS, 0, 1);
+        alt.AddToken((int) HlslConstants.CLOSE_PAREN, 1, 1);
+        pattern.AddAlternative(alt);
+        AddPattern(pattern);
+
+        pattern = new ProductionPattern((int) HlslConstants.PACKOFFSET_FUNC,
+                                        "Packoffset_Func");
+        alt = new ProductionPatternAlternative();
+        alt.AddToken((int) HlslConstants.PACKOFFSET, 1, 1);
+        alt.AddProduction((int) HlslConstants.WS, 0, 1);
+        alt.AddToken((int) HlslConstants.OPEN_PAREN, 1, 1);
+        alt.AddProduction((int) HlslConstants.WS, 0, 1);
+        alt.AddProduction((int) HlslConstants.IDENTIFIER_COMPOSED, 1, 1);
         alt.AddProduction((int) HlslConstants.WS, 0, 1);
         alt.AddToken((int) HlslConstants.CLOSE_PAREN, 1, 1);
         pattern.AddAlternative(alt);
@@ -1224,6 +1244,9 @@ internal class HlslParser : RecursiveDescentParser {
         alt = new ProductionPatternAlternative();
         alt.AddProduction((int) HlslConstants.REGISTER_FUNC, 1, 1);
         pattern.AddAlternative(alt);
+        alt = new ProductionPatternAlternative();
+        alt.AddProduction((int) HlslConstants.PACKOFFSET_FUNC, 1, 1);
+        pattern.AddAlternative(alt);
         AddPattern(pattern);
 
         pattern = new ProductionPattern((int) SynteticPatterns.SUBPRODUCTION_14,
@@ -1473,6 +1496,9 @@ internal class HlslParser : RecursiveDescentParser {
         alt = new ProductionPatternAlternative();
         alt.AddProduction((int) HlslConstants.REGISTER_FUNC, 1, 1);
         pattern.AddAlternative(alt);
+        alt = new ProductionPatternAlternative();
+        alt.AddProduction((int) HlslConstants.PACKOFFSET_FUNC, 1, 1);
+        pattern.AddAlternative(alt);
         AddPattern(pattern);
 
         pattern = new ProductionPattern((int) SynteticPatterns.SUBPRODUCTION_36,
@@ -1556,7 +1582,7 @@ internal class HlslParser : RecursiveDescentParser {
                                         "Subproduction43");
         pattern.SetSyntetic(true);
         alt = new ProductionPatternAlternative();
-        alt.AddToken((int) HlslConstants.MUL, 1, 1);
+        alt.AddToken((int) HlslConstants.MULT, 1, 1);
         pattern.AddAlternative(alt);
         alt = new ProductionPatternAlternative();
         alt.AddToken((int) HlslConstants.DIV, 1, 1);
@@ -1705,6 +1731,9 @@ internal class HlslParser : RecursiveDescentParser {
         pattern.AddAlternative(alt);
         alt = new ProductionPatternAlternative();
         alt.AddProduction((int) HlslConstants.REGISTER_FUNC, 1, 1);
+        pattern.AddAlternative(alt);
+        alt = new ProductionPatternAlternative();
+        alt.AddProduction((int) HlslConstants.PACKOFFSET_FUNC, 1, 1);
         pattern.AddAlternative(alt);
         AddPattern(pattern);
 

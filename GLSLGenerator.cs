@@ -15,28 +15,41 @@ namespace hl2glsl
 	
 		// list of externalizable mainFunctions. Every one will generate a new file 
 		private ArrayList mainFunctions;
+        private string activeMainFunction;
+        private bool isMain = false;
+        private bool replaceReturn = false;
+
+        private string replaceReturnFor;
 		
 		// list of global vars found in shader
 		private ArrayList globalVars;
 		
-		#region MyRegion
+		
         // to replace indentifiers. 
 		// used for example to replace semantic variables:
 		// from "out float4 oColor : COLOR" to "glFragColor" 
 		
-		private Hashtable replaceIdentifier = new Hashtable(); 
-	#endregion
-		
+		private Hashtable replaceIdentifier = new Hashtable();
+        private bool removeRegAndPack = false;
+ 
+	
 		// dependency tree
 		private DependencyGraph dependencyGraph;
 		
 		// temporary attribute 
 		private DependencyGraphNode functionScope;
+        private ArrayList scopeVars; 
 
-		#region MyRegion
-		private ArrayList scopeVars; 
-	#endregion
+        // intrinsic functions that are not supported by GLSL, thus, can not be converted
+        private string [] nsIntrinsicFunctions = {"asuint","clip","cosh","D3DCOLORtoUBYTE4","determinant","frexp",
+                                                  "GetRenderTargetSampleCount","GetRenderTargetSamplePosition",
+                                                  "isfinite","isinf","isnan","ldexp","lerp","lit","log10",
+                                                  "modf","round","saturate","sincos","sinh","tanh","tex1Dbias",
+                                                  "tex1Dgrad","tex2Dbias","tex2Dgrad","tex3Dbias","tex3Dgrad",
+                                                  "texCUBEbias","texCUBEgrad","transpose","trunc"};
 
+        private Hashtable eqIntrinsicFunctions = new Hashtable(); 
+	
         private bool CheckAndReplace(Token node, String strHLSL, String strGLSL) {
         	if (node.GetImage().Equals(strHLSL)) {
 				node.AddValue(strGLSL);
@@ -45,7 +58,7 @@ namespace hl2glsl
 			return false;
         }	
         
-        #region MyRegion
+       
 		private bool CheckAndReplace(Token node, Hashtable replacement) {
 			// Loop through all items of a Hashtable
 			IDictionaryEnumerator en = replacement.GetEnumerator();
@@ -54,8 +67,22 @@ namespace hl2glsl
 					return true;
 			}
 			return false;
-        }	 
-	#endregion        
+        }
+
+        private Node replaceIntrinsicFunc(Token node)
+        {
+            ArrayList nsif = new ArrayList();
+            nsif.AddRange(nsIntrinsicFunctions);
+            
+            if (nsif.Contains(node.GetImage()))
+                Console.WriteLine("This intrinsic function ({0})is not supported by GLSL", node.GetImage().ToString());
+
+            CheckAndReplace(node, eqIntrinsicFunctions);
+            
+            return node;
+
+           
+        }
 
 		public DependencyGraphNode SearchInDependencyGraph(string dependantName) {
 			return dependencyGraph.SearchDependant(dependantName);
@@ -68,6 +95,8 @@ namespace hl2glsl
 		public ArrayList GetWhoThisFunctionCalls(string func) {
 			return dependencyGraph.GetWhoThisFunctionCalls(func);
 		}
+
+
 		
 		/**
 		 * Class witch replaces HLSL code to GLSL ones.
@@ -79,9 +108,33 @@ namespace hl2glsl
 			globalVars = new ArrayList();
 			dependencyGraph = new DependencyGraph();
 
-		
-			scopeVars = new ArrayList(); 
-	
+            activeMainFunction = mainFunctions[0].ToString();
+			scopeVars = new ArrayList();
+
+            eqIntrinsicFunctions.Add("asfloat","float");
+            eqIntrinsicFunctions.Add("asint","int");
+            eqIntrinsicFunctions.Add("atan2","atan");
+            eqIntrinsicFunctions.Add("ddx","dFdx");
+            eqIntrinsicFunctions.Add("ddy","dFdy");
+            eqIntrinsicFunctions.Add("fmod","mod");
+            eqIntrinsicFunctions.Add("frac","fract");
+            eqIntrinsicFunctions.Add("noise","noise1");
+            eqIntrinsicFunctions.Add("rsqrt","inversesqrt");
+            eqIntrinsicFunctions.Add("tex1D","texture1D");
+            eqIntrinsicFunctions.Add("tex1Dlod","texture1DLod");
+            eqIntrinsicFunctions.Add("tex1Dproj","texture1DProj");
+            eqIntrinsicFunctions.Add("tex2D","texture2D");
+            eqIntrinsicFunctions.Add("tex2Dlod","texture2DLod");
+            eqIntrinsicFunctions.Add("tex2Dproj","texture2DProj");
+            eqIntrinsicFunctions.Add("tex3D","texture3D");
+            eqIntrinsicFunctions.Add("tex3Dlod","texture3DLod");
+            eqIntrinsicFunctions.Add("tex3Dproj","texture3DProj");
+            eqIntrinsicFunctions.Add("texCube", "textureCube");
+            eqIntrinsicFunctions.Add("texCubelod", "textureCubeLod");
+            eqIntrinsicFunctions.Add("texCubeproj","textureCubeProj");
+
+           
+            
 		}
 
         
@@ -90,7 +143,6 @@ namespace hl2glsl
             throw new UnsupportedTokenException(node.ToString());
             //return node;
         }
-
         public override Node ExitPreElseif(Token node)
         {
             node.AddValue("#elif");
@@ -149,8 +201,45 @@ namespace hl2glsl
         public override Node ExitInout(Token node) {
         	node.AddValue("");
         	return node;
-        }        
-        
+        }
+
+        public override Node ExitRegisterFunc(Production node)
+        {
+            //throw new UnsupportedTokenException(node.ToString());
+            Console.WriteLine("GLSL does not support direct access to registers, so, you can't use register.");
+            Console.WriteLine("Remove it from code? (Keeping it in the code will cause the GLSL code not to compile) Y/N");
+            string key = Console.ReadLine().ToString();
+            if (key == "y")
+                removeRegAndPack = true;
+
+            return node;
+        }
+
+        public override Node ExitPackoffsetFunc(Production node)
+        {
+            //throw new UnsupportedTokenException(node.ToString());
+            Console.WriteLine("GLSL does not support direct access to registers, so, you can't use packoffset.");
+            //se o usuário já mandou remover o register não precisa perguntar de novo se ele quer remover o packoffset
+            if (removeRegAndPack == false)
+            {
+                Console.WriteLine("Remove it from code? (Keeping it in the code will cause the GLSL code not to compile) Y/N");
+                string key = Console.ReadLine().ToString();
+                if (key == "y")
+                    removeRegAndPack = true;
+            }
+            return node;
+        }
+
+        public override Node ExitBasicUint(Token node)
+        {
+            Console.WriteLine("Tipo uint não suportado pela GLSL. Substituir por int? Y/N");
+            string key = Console.ReadLine().ToString();
+            if (key == "y")
+                CheckAndReplace(node, "uint", "int");
+            else Console.WriteLine("O codigo gerado nao eh consistente");
+            return base.ExitBasicUint(node);
+        }
+
         /**
          * Move the global vars to outside function declaration.
          */
@@ -257,8 +346,20 @@ namespace hl2glsl
 				return true;
 			}
 			return false;
-		}	 
-		
+		}
+        public Node RemoveTypeFromMain(Production node)
+        {
+            Production tempType = (Production) GrammaticaNodeUtils.FindChildOf(node, "Type");
+            ArrayList tempVoid = GrammaticaNodeUtils.GetChildren(tempType);
+
+            if (tempVoid != null)
+            {
+                tempVoid.RemoveAt(0);
+                tempVoid.Insert(0, GrammaticaNodeUtils.CreateVoidToken());
+            }
+
+            return node;
+        }
 		
 		public Node RemoveSemanticParams(Production node) {
 			ArrayList lista = GrammaticaNodeUtils.GetChildren(node);
@@ -269,7 +370,9 @@ namespace hl2glsl
 				if ((((Node)lista[i]).GetName().Equals("SemanticalParameters"))) 
 					trash.Add(lista[i]);
 				if ((((Node)lista[i]).GetName().Equals("Register_Func")))
-					trash.Add(lista[i]);										
+					trash.Add(lista[i]);
+                if ((((Node)lista[i]).GetName().Equals("Packoffset_Func")))
+                    trash.Add(lista[i]);						
 			}
 			
 			for (int j=0; j<trash.Count; j++) {
@@ -304,12 +407,12 @@ namespace hl2glsl
 			) {
 			
 
-				//GrammaticaNodeUtils.GetChildren((Production)GrammaticaNodeUtils.FindChildOf(node, "Variable_Declaration")).Clear();
+				//GrammaticaNodeUtils.GetChildren((Production)GrammaticaNodeUtils.FindChildOf(node, "Variable_Declaration")).;
 				return node;
 			}
 			return RemoveSemanticParams(node);
 		} 
-	
+	 
 			
         // For each param in every main HLSL function
         // Move the uniform and varying params outside the function with his own comments
@@ -318,11 +421,12 @@ namespace hl2glsl
 			
 			// Only main mainFunctions.
 			// Based on the presence of in, out or inout keywords
-			ArrayList isMain = GrammaticaNodeUtils.FindChildrenOf(
-								node, new string[2] {"Function_Param", "In_out_inout"});
+		//	ArrayList isMain = GrammaticaNodeUtils.FindChildrenOf(
+		//						node, new string[2] {"Function_Param", "In_out_inout"});
 			
-			//if (isMain.Count <= 0) return node;
-			
+			if (!isMain) return node;
+
+            isMain = false;
 			// Searching params that will be removed at ExitFunctionParam
 			for (int i=0; i<listOfParams.Count; i++) {
 				if (!(listOfParams[i] is Production))
@@ -362,7 +466,8 @@ namespace hl2glsl
 						
 					if (hasUniform == null) {
 					    GrammaticaNodeUtils.GetChildren(variableDeclaration).Insert(0, GrammaticaNodeUtils.CreateSpaceToken());
-						GrammaticaNodeUtils.GetChildren(variableDeclaration).Insert(0, GrammaticaNodeUtils.CreateVaryingToken());						
+                        GrammaticaNodeUtils.GetChildren(variableDeclaration).Insert(0, GrammaticaNodeUtils.CreateVaryingToken());
+                        GrammaticaNodeUtils.GetChildren(variableDeclaration).Insert(0, GrammaticaNodeUtils.CreateNewLineToken());
 					}
 					
 			 		// move uniform to outside.
@@ -406,6 +511,8 @@ namespace hl2glsl
 
 			if (identifier == null) return node;
 
+            replaceIntrinsicFunc(identifier);
+
 			// mul(term, term) => term * term
 			if (identifier.GetImage().Equals("mul")) {
 				identifier.AddValue("");
@@ -423,8 +530,12 @@ namespace hl2glsl
 				Node exp2 = GrammaticaNodeUtils.FindChildOf(listOfParam, "Expression", 2);
 				
 				GrammaticaNodeUtils.SwapChildrenPosition(listOfParam, exp1, exp2);
-			}		
-		
+			}
+
+            if (identifier.GetImage().Equals("trunc"))
+            {
+                Console.WriteLine("perdi meu tempo");
+            }
 			// add dependent function
 			Node n = GrammaticaNodeUtils.FindChildOf(node, "PartOf_Constructor_Call");
 			if (n != null && identifier != null && functionScope != null) {
@@ -442,7 +553,18 @@ namespace hl2glsl
 			return node;
 		}
 
+        public override Node ExitNumber(Token node)
+        {
+            
+            if (node.GetImage().Contains("f"))
+            {
+                string temp = node.GetImage();
 
+                node.RemoveAllValues();
+                node.AddValue(temp.Replace("f",""));
+            }
+            return base.ExitNumber(node);
+        }
 		
 		public override Node ExitAtom(Production node) {
 			Token identifier = (Token) GrammaticaNodeUtils.FindChildOf(node, new string[2] {"Type", "IDENTIFIER"});
@@ -460,25 +582,51 @@ namespace hl2glsl
 			}
 			
 			return node;
-		} 
-	
-		
+		}
 
-		
+
+        public override Node ExitVariableDeclarationPart(Production node)
+        {
+          //  RemoveSemanticParams(node);
+            Console.WriteLine("neste eu entro");
+            return base.ExitVariableDeclarationPart(node);
+        }
+
+        public override Node ExitVariableDeclaration(Production node)
+        {
+         //   RemoveSemanticParams(node);
+            Console.WriteLine("neste eu entrooooooooooo");
+            return base.ExitVariableDeclaration(node);
+        }
+
 		public override Node ExitPartOfVariableDeclaration(Production node) {
 			// record all variable declarations inside this function. 			
 			Token variableDeclaration = (Token) GrammaticaNodeUtils.FindChildOf(node, new string[1] {"IDENTIFIER"});	
 			if (variableDeclaration != null) {
 				Console.WriteLine(variableDeclaration.GetImage());
+                Console.WriteLine("agora to aqui");
 				scopeVars.Add(variableDeclaration.GetImage());
+                if(removeRegAndPack == true)
+                    RemoveSemanticParams(node);
 			}		
 			return node;
 		}
 
+        public override Node ExitVariableAssignment(Production node)
+        {
+            return base.ExitVariableAssignment(node);
+        }
+
 		public override Node ExitIdentifier(Token node) {
 			CheckAndReplace(node, "tex2D", "texture2D");
 			CheckAndReplace(node, replaceIdentifier);
-			
+            if (node.GetImage().Equals(activeMainFunction))
+            {
+                isMain = true;
+                replaceReturn = true;
+            }
+            
+
 			return node;
 		} 
 	
@@ -492,10 +640,11 @@ namespace hl2glsl
 			dependencyGraph.AddDependant(functionScope);
 			
 		    scopeVars = new ArrayList();
-			replaceIdentifier = new Hashtable(); 
-	
+			replaceIdentifier = new Hashtable();
+            //replaceReturn = new Hashtable();
 		}
-		
+
+        
 		public override Node ExitFunctionOrVariableDeclaration(Production node) {
 			DependencyGraphNode antiga = dependencyGraph.SearchDependant(((Token)GrammaticaNodeUtils.FindChildOf(node, "IDENTIFIER")).GetImage());
 			// se a função já existir
@@ -506,12 +655,122 @@ namespace hl2glsl
 				dependencyGraph.SearchDependant("Nova Função").SetDependencyName(((Token)GrammaticaNodeUtils.FindChildOf(node, "IDENTIFIER")).GetImage());
 			}
 			functionScope = null;
-			
+
+
+            if (((Token)GrammaticaNodeUtils.FindChildOf(node, "IDENTIFIER")).GetImage().Equals(activeMainFunction))
+            {
+                Console.WriteLine("era igual, tem q tirar o tipo");
+                RemoveTypeFromMain(node);
+            }
 		    scopeVars = new ArrayList();
-			replaceIdentifier = new Hashtable(); 
-	
+			replaceIdentifier = new Hashtable();
+            
 			return node;
 		}
-		
+
+        public override Node ExitReturn(Token node)
+        {
+        
+            Console.WriteLine("to no retunr");
+            return base.ExitReturn(node);
+        }
+
+        public override Node ExitStatement(Production node)
+        {
+
+            if (replaceReturn == false) return node;
+ 
+            Node n = GrammaticaNodeUtils.FindChildOf(node, new string[1] { "Return_Statement" });
+            if (n != null)
+            {
+               Node returnStatement = GrammaticaNodeUtils.FindChildOf(n, new string[1] { "RETURN" });
+
+               if (returnStatement != null)
+                {
+                   
+                   ArrayList returnStatementChildren = GrammaticaNodeUtils.GetChildren((Production)n);
+                    returnStatementChildren.Insert(1, GrammaticaNodeUtils.CreateEqualToken());
+                    returnStatementChildren.Insert(1, GrammaticaNodeUtils.CreateSpaceToken());
+                    Console.WriteLine("statement");
+                }
+                
+               
+            }
+            return node;
+        }
+        //19905687
+        //19906429
+        //08007010180
+        //08007010358
+        //74868230
+        //19921819
+        public bool MarkIfNodeIsFuncSemanticalParameter(Production node, string tokenType, string to)
+        {
+            ArrayList lista = GrammaticaNodeUtils.GetChildren(node);
+            
+            for (int i = 0; i < lista.Count; i++)
+            {
+                if ((((Node)lista[i]).GetName().Equals("SemanticalParameters")))
+                {
+                    Token name = (Token) GrammaticaNodeUtils.FindChildOf(node, new string[3] {"SemanticalParameters", "InOutSemanticalParameters", tokenType});
+                    if (name != null)
+                    {
+                        replaceReturnFor=to;
+                        Console.WriteLine("vou trocar o nome");
+                        return true;
+                    }
+                    return false;
+				}
+                      
+            }
+            return false;
+        }
+        public override Node ExitFunctionBody(Production node)
+        {
+            Console.WriteLine("to no body");
+            return base.ExitFunctionBody(node);
+        }
+
+        public override Node ExitFunctionPart(Production node)
+        {
+
+            if (MarkIfNodeIsFuncSemanticalParameter(node, "COLOR", "gl_FragColor")
+            || MarkIfNodeIsFuncSemanticalParameter(node, "NORMAL", "gl_Normal")
+          //  || MarkIfNodeIsFuncSemanticalParameter(node, "POSITION", "gl_Position", false)
+          //  || MarkIfNodeIsFuncSemanticalParameter(node, "POSITION", "gl_Vertex", true)
+          //  || MarkIfNodeIsFuncSemanticalParameter(node, "TEXCOORD0", "gl_MultiTexCoord0", true)
+            )
+            {
+                RemoveSemanticParams(node);
+            }
+            if (replaceReturn == true)
+            {
+                replaceReturn = false;
+
+                Node funcBody = GrammaticaNodeUtils.FindChildOf(node, "Function_Body");
+                if (funcBody != null)
+                    Console.WriteLine("corpo da func");
+                for (int i = 0; i < funcBody.GetChildCount(); i++)
+                {
+                    Node tempStatement = GrammaticaNodeUtils.FindChildOf(funcBody.GetChildAt(i), "Return_Statement");
+                    if (tempStatement != null)
+                    {
+                        Token tempReturn = (Token)GrammaticaNodeUtils.FindChildOf(tempStatement, "RETURN");
+                        if (tempReturn != null)
+                        {
+                            tempReturn.RemoveAllValues();
+                            tempReturn.AddValue(replaceReturnFor);
+                            Console.WriteLine("entrei no corpo");
+                        }
+
+                    }
+                }
+            }
+
+
+            return base.ExitFunctionPart(node);
+        }
+
+        
 	}
 }

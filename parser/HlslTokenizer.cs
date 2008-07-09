@@ -54,8 +54,8 @@ internal class HlslTokenizer : Tokenizer {
                                    "-");
         AddPattern(pattern);
 
-        pattern = new TokenPattern((int) HlslConstants.MUL,
-                                   "MUL",
+        pattern = new TokenPattern((int) HlslConstants.MULT,
+                                   "MULT",
                                    TokenPattern.PatternType.STRING,
                                    "*");
         AddPattern(pattern);
@@ -102,8 +102,8 @@ internal class HlslTokenizer : Tokenizer {
                                    "-=");
         AddPattern(pattern);
 
-        pattern = new TokenPattern((int) HlslConstants.MUL_EQUAL,
-                                   "MUL_EQUAL",
+        pattern = new TokenPattern((int) HlslConstants.MULT_EQUAL,
+                                   "MULT_EQUAL",
                                    TokenPattern.PatternType.STRING,
                                    "*=");
         AddPattern(pattern);
@@ -220,6 +220,12 @@ internal class HlslTokenizer : Tokenizer {
                                    "OR_OR",
                                    TokenPattern.PatternType.STRING,
                                    "||");
+        AddPattern(pattern);
+
+        pattern = new TokenPattern((int) HlslConstants.NOT,
+                                   "NOT",
+                                   TokenPattern.PatternType.STRING,
+                                   "!");
         AddPattern(pattern);
 
         pattern = new TokenPattern((int) HlslConstants.MAJOR,
@@ -480,6 +486,12 @@ internal class HlslTokenizer : Tokenizer {
                                    "out");
         AddPattern(pattern);
 
+        pattern = new TokenPattern((int) HlslConstants.PACKOFFSET,
+                                   "PACKOFFSET",
+                                   TokenPattern.PatternType.STRING,
+                                   "packoffset");
+        AddPattern(pattern);
+
         pattern = new TokenPattern((int) HlslConstants.PASS,
                                    "PASS",
                                    TokenPattern.PatternType.STRING,
@@ -490,6 +502,12 @@ internal class HlslTokenizer : Tokenizer {
                                    "PIXELFRAGMENT",
                                    TokenPattern.PatternType.STRING,
                                    "pixelfragment");
+        AddPattern(pattern);
+
+        pattern = new TokenPattern((int) HlslConstants.REGISTER,
+                                   "REGISTER",
+                                   TokenPattern.PatternType.STRING,
+                                   "register");
         AddPattern(pattern);
 
         pattern = new TokenPattern((int) HlslConstants.RETURN,
@@ -870,12 +888,6 @@ internal class HlslTokenizer : Tokenizer {
                                    "short");
         AddPattern(pattern);
 
-        pattern = new TokenPattern((int) HlslConstants.REGISTER,
-                                   "REGISTER",
-                                   TokenPattern.PatternType.STRING,
-                                   "register");
-        AddPattern(pattern);
-
         pattern = new TokenPattern((int) HlslConstants.STATIC_CAST,
                                    "STATIC_CAST",
                                    TokenPattern.PatternType.STRING,
@@ -1150,6 +1162,12 @@ internal class HlslTokenizer : Tokenizer {
                                    "BASIC_DOUBLE",
                                    TokenPattern.PatternType.STRING,
                                    "double");
+        AddPattern(pattern);
+
+        pattern = new TokenPattern((int) HlslConstants.BASIC_UINT,
+                                   "BASIC_UINT",
+                                   TokenPattern.PatternType.STRING,
+                                   "uint");
         AddPattern(pattern);
 
         pattern = new TokenPattern((int) HlslConstants.PRE_DEFINE,

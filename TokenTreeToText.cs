@@ -86,10 +86,12 @@ namespace hl2glsl
             // exports only the dependencies of the function.
             if (node.GetName().Equals("Function_OR_Variable_Declaration"))
             {
-                if (functionsToExport.Contains(((Token)GrammaticaNodeUtils.FindChildOf(node, "IDENTIFIER")).GetImage()))
+                if ((functionsToExport.Contains(((Token)GrammaticaNodeUtils.FindChildOf(node, "IDENTIFIER")).GetImage()))
+                    || ((GrammaticaNodeUtils.FindChildOf(node, "Variable_Declaration_PART"))!=null))
                 {
                     WriteChildren(node);
                 }
+                
             }
             else if (node.GetName().Equals("Variable_Declaration") && node.GetParent().GetName().Equals("File"))
             {

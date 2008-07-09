@@ -32,8 +32,8 @@ internal abstract class HlslAnalyzer : Analyzer {
         case (int) HlslConstants.SUB:
             EnterSub((Token) node);
             break;
-        case (int) HlslConstants.MUL:
-            EnterMul((Token) node);
+        case (int) HlslConstants.MULT:
+            EnterMult((Token) node);
             break;
         case (int) HlslConstants.DIV:
             EnterDiv((Token) node);
@@ -56,8 +56,8 @@ internal abstract class HlslAnalyzer : Analyzer {
         case (int) HlslConstants.SUB_EQUAL:
             EnterSubEqual((Token) node);
             break;
-        case (int) HlslConstants.MUL_EQUAL:
-            EnterMulEqual((Token) node);
+        case (int) HlslConstants.MULT_EQUAL:
+            EnterMultEqual((Token) node);
             break;
         case (int) HlslConstants.DIV_EQUAL:
             EnterDivEqual((Token) node);
@@ -115,6 +115,9 @@ internal abstract class HlslAnalyzer : Analyzer {
             break;
         case (int) HlslConstants.OR_OR:
             EnterOrOr((Token) node);
+            break;
+        case (int) HlslConstants.NOT:
+            EnterNot((Token) node);
             break;
         case (int) HlslConstants.MAJOR:
             EnterMajor((Token) node);
@@ -245,11 +248,17 @@ internal abstract class HlslAnalyzer : Analyzer {
         case (int) HlslConstants.OUT:
             EnterOut((Token) node);
             break;
+        case (int) HlslConstants.PACKOFFSET:
+            EnterPackoffset((Token) node);
+            break;
         case (int) HlslConstants.PASS:
             EnterPass((Token) node);
             break;
         case (int) HlslConstants.PIXELFRAGMENT:
             EnterPixelfragment((Token) node);
+            break;
+        case (int) HlslConstants.REGISTER:
+            EnterRegister((Token) node);
             break;
         case (int) HlslConstants.RETURN:
             EnterReturn((Token) node);
@@ -440,9 +449,6 @@ internal abstract class HlslAnalyzer : Analyzer {
         case (int) HlslConstants.SHORT:
             EnterShort((Token) node);
             break;
-        case (int) HlslConstants.REGISTER:
-            EnterRegister((Token) node);
-            break;
         case (int) HlslConstants.STATIC_CAST:
             EnterStaticCast((Token) node);
             break;
@@ -580,6 +586,9 @@ internal abstract class HlslAnalyzer : Analyzer {
             break;
         case (int) HlslConstants.BASIC_DOUBLE:
             EnterBasicDouble((Token) node);
+            break;
+        case (int) HlslConstants.BASIC_UINT:
+            EnterBasicUint((Token) node);
             break;
         case (int) HlslConstants.PRE_DEFINE:
             EnterPreDefine((Token) node);
@@ -797,6 +806,9 @@ internal abstract class HlslAnalyzer : Analyzer {
         case (int) HlslConstants.REGISTER_FUNC:
             EnterRegisterFunc((Production) node);
             break;
+        case (int) HlslConstants.PACKOFFSET_FUNC:
+            EnterPackoffsetFunc((Production) node);
+            break;
         case (int) HlslConstants.IDENTIFIER_COMPOSED:
             EnterIdentifierComposed((Production) node);
             break;
@@ -841,8 +853,8 @@ internal abstract class HlslAnalyzer : Analyzer {
             return ExitAdd((Token) node);
         case (int) HlslConstants.SUB:
             return ExitSub((Token) node);
-        case (int) HlslConstants.MUL:
-            return ExitMul((Token) node);
+        case (int) HlslConstants.MULT:
+            return ExitMult((Token) node);
         case (int) HlslConstants.DIV:
             return ExitDiv((Token) node);
         case (int) HlslConstants.MOD:
@@ -857,8 +869,8 @@ internal abstract class HlslAnalyzer : Analyzer {
             return ExitAddEqual((Token) node);
         case (int) HlslConstants.SUB_EQUAL:
             return ExitSubEqual((Token) node);
-        case (int) HlslConstants.MUL_EQUAL:
-            return ExitMulEqual((Token) node);
+        case (int) HlslConstants.MULT_EQUAL:
+            return ExitMultEqual((Token) node);
         case (int) HlslConstants.DIV_EQUAL:
             return ExitDivEqual((Token) node);
         case (int) HlslConstants.MOD_EQUAL:
@@ -897,6 +909,8 @@ internal abstract class HlslAnalyzer : Analyzer {
             return ExitAndAnd((Token) node);
         case (int) HlslConstants.OR_OR:
             return ExitOrOr((Token) node);
+        case (int) HlslConstants.NOT:
+            return ExitNot((Token) node);
         case (int) HlslConstants.MAJOR:
             return ExitMajor((Token) node);
         case (int) HlslConstants.MINOR:
@@ -983,10 +997,14 @@ internal abstract class HlslAnalyzer : Analyzer {
             return ExitMatrix((Token) node);
         case (int) HlslConstants.OUT:
             return ExitOut((Token) node);
+        case (int) HlslConstants.PACKOFFSET:
+            return ExitPackoffset((Token) node);
         case (int) HlslConstants.PASS:
             return ExitPass((Token) node);
         case (int) HlslConstants.PIXELFRAGMENT:
             return ExitPixelfragment((Token) node);
+        case (int) HlslConstants.REGISTER:
+            return ExitRegister((Token) node);
         case (int) HlslConstants.RETURN:
             return ExitReturn((Token) node);
         case (int) HlslConstants.ROW_MAJOR:
@@ -1113,8 +1131,6 @@ internal abstract class HlslAnalyzer : Analyzer {
             return ExitReinterpretCast((Token) node);
         case (int) HlslConstants.SHORT:
             return ExitShort((Token) node);
-        case (int) HlslConstants.REGISTER:
-            return ExitRegister((Token) node);
         case (int) HlslConstants.STATIC_CAST:
             return ExitStaticCast((Token) node);
         case (int) HlslConstants.SIGNED:
@@ -1207,6 +1223,8 @@ internal abstract class HlslAnalyzer : Analyzer {
             return ExitBasicBool((Token) node);
         case (int) HlslConstants.BASIC_DOUBLE:
             return ExitBasicDouble((Token) node);
+        case (int) HlslConstants.BASIC_UINT:
+            return ExitBasicUint((Token) node);
         case (int) HlslConstants.PRE_DEFINE:
             return ExitPreDefine((Token) node);
         case (int) HlslConstants.PRE_IF:
@@ -1351,6 +1369,8 @@ internal abstract class HlslAnalyzer : Analyzer {
             return ExitInOutInout((Production) node);
         case (int) HlslConstants.REGISTER_FUNC:
             return ExitRegisterFunc((Production) node);
+        case (int) HlslConstants.PACKOFFSET_FUNC:
+            return ExitPackoffsetFunc((Production) node);
         case (int) HlslConstants.IDENTIFIER_COMPOSED:
             return ExitIdentifierComposed((Production) node);
         case (int) HlslConstants.COMPOSE_IDENTIFIER:
@@ -1554,6 +1574,9 @@ internal abstract class HlslAnalyzer : Analyzer {
         case (int) HlslConstants.REGISTER_FUNC:
             ChildRegisterFunc(node, child);
             break;
+        case (int) HlslConstants.PACKOFFSET_FUNC:
+            ChildPackoffsetFunc(node, child);
+            break;
         case (int) HlslConstants.IDENTIFIER_COMPOSED:
             ChildIdentifierComposed(node, child);
             break;
@@ -1641,7 +1664,7 @@ internal abstract class HlslAnalyzer : Analyzer {
      * <exception cref='ParseException'>if the node analysis
      * discovered errors</exception>
      */
-    public virtual void EnterMul(Token node) {
+    public virtual void EnterMult(Token node) {
     }
 
     /**
@@ -1655,7 +1678,7 @@ internal abstract class HlslAnalyzer : Analyzer {
      * <exception cref='ParseException'>if the node analysis
      * discovered errors</exception>
      */
-    public virtual Node ExitMul(Token node) {
+    public virtual Node ExitMult(Token node) {
         return node;
     }
 
@@ -1849,7 +1872,7 @@ internal abstract class HlslAnalyzer : Analyzer {
      * <exception cref='ParseException'>if the node analysis
      * discovered errors</exception>
      */
-    public virtual void EnterMulEqual(Token node) {
+    public virtual void EnterMultEqual(Token node) {
     }
 
     /**
@@ -1863,7 +1886,7 @@ internal abstract class HlslAnalyzer : Analyzer {
      * <exception cref='ParseException'>if the node analysis
      * discovered errors</exception>
      */
-    public virtual Node ExitMulEqual(Token node) {
+    public virtual Node ExitMultEqual(Token node) {
         return node;
     }
 
@@ -2358,6 +2381,32 @@ internal abstract class HlslAnalyzer : Analyzer {
      * discovered errors</exception>
      */
     public virtual Node ExitOrOr(Token node) {
+        return node;
+    }
+
+    /**
+     * <summary>Called when entering a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being entered</param>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual void EnterNot(Token node) {
+    }
+
+    /**
+     * <summary>Called when exiting a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being exited</param>
+     * 
+     * <returns>the node to add to the parse tree, or
+     *          null if no parse tree should be created</returns>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual Node ExitNot(Token node) {
         return node;
     }
 
@@ -3487,6 +3536,32 @@ internal abstract class HlslAnalyzer : Analyzer {
      * <exception cref='ParseException'>if the node analysis
      * discovered errors</exception>
      */
+    public virtual void EnterPackoffset(Token node) {
+    }
+
+    /**
+     * <summary>Called when exiting a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being exited</param>
+     * 
+     * <returns>the node to add to the parse tree, or
+     *          null if no parse tree should be created</returns>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual Node ExitPackoffset(Token node) {
+        return node;
+    }
+
+    /**
+     * <summary>Called when entering a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being entered</param>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
     public virtual void EnterPass(Token node) {
     }
 
@@ -3528,6 +3603,32 @@ internal abstract class HlslAnalyzer : Analyzer {
      * discovered errors</exception>
      */
     public virtual Node ExitPixelfragment(Token node) {
+        return node;
+    }
+
+    /**
+     * <summary>Called when entering a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being entered</param>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual void EnterRegister(Token node) {
+    }
+
+    /**
+     * <summary>Called when exiting a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being exited</param>
+     * 
+     * <returns>the node to add to the parse tree, or
+     *          null if no parse tree should be created</returns>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual Node ExitRegister(Token node) {
         return node;
     }
 
@@ -5177,32 +5278,6 @@ internal abstract class HlslAnalyzer : Analyzer {
      * <exception cref='ParseException'>if the node analysis
      * discovered errors</exception>
      */
-    public virtual void EnterRegister(Token node) {
-    }
-
-    /**
-     * <summary>Called when exiting a parse tree node.</summary>
-     * 
-     * <param name='node'>the node being exited</param>
-     * 
-     * <returns>the node to add to the parse tree, or
-     *          null if no parse tree should be created</returns>
-     * 
-     * <exception cref='ParseException'>if the node analysis
-     * discovered errors</exception>
-     */
-    public virtual Node ExitRegister(Token node) {
-        return node;
-    }
-
-    /**
-     * <summary>Called when entering a parse tree node.</summary>
-     * 
-     * <param name='node'>the node being entered</param>
-     * 
-     * <exception cref='ParseException'>if the node analysis
-     * discovered errors</exception>
-     */
     public virtual void EnterStaticCast(Token node) {
     }
 
@@ -6388,6 +6463,32 @@ internal abstract class HlslAnalyzer : Analyzer {
      * discovered errors</exception>
      */
     public virtual Node ExitBasicDouble(Token node) {
+        return node;
+    }
+
+    /**
+     * <summary>Called when entering a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being entered</param>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual void EnterBasicUint(Token node) {
+    }
+
+    /**
+     * <summary>Called when exiting a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being exited</param>
+     * 
+     * <returns>the node to add to the parse tree, or
+     *          null if no parse tree should be created</returns>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual Node ExitBasicUint(Token node) {
         return node;
     }
 
@@ -9058,6 +9159,46 @@ internal abstract class HlslAnalyzer : Analyzer {
      * discovered errors</exception>
      */
     public virtual void ChildRegisterFunc(Production node, Node child) {
+        node.AddChild(child);
+    }
+
+    /**
+     * <summary>Called when entering a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being entered</param>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual void EnterPackoffsetFunc(Production node) {
+    }
+
+    /**
+     * <summary>Called when exiting a parse tree node.</summary>
+     * 
+     * <param name='node'>the node being exited</param>
+     * 
+     * <returns>the node to add to the parse tree, or
+     *          null if no parse tree should be created</returns>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual Node ExitPackoffsetFunc(Production node) {
+        return node;
+    }
+
+    /**
+     * <summary>Called when adding a child to a parse tree
+     * node.</summary>
+     * 
+     * <param name='node'>the parent node</param>
+     * <param name='child'>the child node, or null</param>
+     * 
+     * <exception cref='ParseException'>if the node analysis
+     * discovered errors</exception>
+     */
+    public virtual void ChildPackoffsetFunc(Production node, Node child) {
         node.AddChild(child);
     }
 

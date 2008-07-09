@@ -11,6 +11,8 @@ using PerCederberg.Grammatica.Parser;
 
 namespace hl2glsl {
 	public class GrammaticaNodeUtils {
+
+        
 		/** Returns the first child of node with the name equals childName. */
 		public static Node FindChildOf(Node node, string childName) {
         	return FindChildOf(node, childName, 1);
@@ -121,6 +123,21 @@ namespace hl2glsl {
 			return new Token(patternVarying, patternVarying.GetPattern(), 1, 1);
 		}
 
+        public static Node CreateVoidToken()
+        {
+            TokenPattern patternVoid = new TokenPattern((int)HlslConstants.VOID,
+                                       "VOID", TokenPattern.PatternType.STRING, "void");
+            return new Token(patternVoid, patternVoid.GetPattern(), 1, 1);
+        }
+
+        public static Node CreateEqualToken()
+        {
+            TokenPattern patternEqual = new TokenPattern((int)HlslConstants.EQUAL,
+                                        "EQUAL", TokenPattern.PatternType.STRING, "=");
+            return new Token(patternEqual, patternEqual.GetPattern(), 1, 1);
+	
+
+        }
 		// Dado um nodo pai, e o índice do nodo filho, esta função busca em índeces anteriores e posteriores 
 		// os comentários pertinentes e move para dentro do nodeToPut. 
 		// O objetivo desta função é preparar os nodos para serem movidos, levando consigo seus comentários.  
